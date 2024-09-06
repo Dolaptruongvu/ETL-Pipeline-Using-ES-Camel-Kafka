@@ -9,7 +9,7 @@ This ETL project involves setting up an integration pipeline using Elasticsearch
    `Bash
    https://github.com/apache/camel-karavan
    `
-3. **Clone the Project Repository**
+2. **Clone the Project Repository**
    After installing Karavan, clone this project repository by running the following command:
    `Bash
    git clone https://github.com/Dolaptruongvu/ETL-Pipeline-Using-ES-Camel-Kafka.git
