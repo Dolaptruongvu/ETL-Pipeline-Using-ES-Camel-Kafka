@@ -11,13 +11,14 @@ This ETL project involves setting up an integration pipeline using Elasticsearch
    `
 2. **Clone the Project Repository**
    After installing Karavan, clone this project repository by running the following command:
+   
    `Bash
    git clone https://github.com/Dolaptruongvu/ETL-Pipeline-Using-ES-Camel-Kafka.git
    `
-3. **Add Files to Karavan**
-After cloning, add all files to Karavan, except for the following two files:
-docker-compose.yaml
-application.properties
+ 3. **Add Files to Karavan**
+  After cloning, add all files to Karavan, except for the following two files:
+    docker-compose.yaml
+    application.properties
 
 ### Start and Monitor Routes
 Once the files are added to Karavan, you can monitor and manage your routes directly from the Karavan platform.
