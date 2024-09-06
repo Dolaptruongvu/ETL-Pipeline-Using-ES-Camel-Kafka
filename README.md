@@ -2,13 +2,13 @@
 
 This ETL project involves setting up an integration pipeline using Elasticsearch, Apache Camel, and Kafka. Follow the steps below to get the project running:
 
-###Prerequisites
-1. Install Apache Camel Karavan
-First, you need to run Apache Camel Karavan. You can download it from the following GitHub repository:
-`Bash
-https://github.com/apache/camel-karavan
-`
-2.Clone the Project Repository
+### Prerequisites
+1. **Install Apache Camel Karavan**  
+   First, you need to run **Apache Camel Karavan**. You can download it from the following GitHub repository:
+   
+   ``bash
+   https://github.com/apache/camel-karavan
+2. **Clone the Project Repository**
 After installing Karavan, clone this project repository by running the following command:
 `Bash
 git clone https://github.com/Dolaptruongvu/ETL-Pipeline-Using-ES-Camel-Kafka.git
