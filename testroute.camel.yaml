@@ -1,0 +1,144 @@
+- route:
+    id: route-c6c7
+    description: process filter and get scroll id
+    nodePrefixId: route-6bd
+    from:
+      id: from-21de
+      uri: timer
+      parameters:
+        timerName: runOnce
+        repeatCount: "1"
+      steps:
+        - setHeaders:
+            id: setHeaders-43e2
+            description: Headers for getting data
+            headers:
+              - id: setHeader-7fa8
+                name: Authorization
+                expression:
+                  constant:
+                    id: constant-fbc4
+                    expression: Basic ZWxhc3RpYzpzZk5Ga0liRHlmTjVRUHNRQVpWUw==
+              - id: setHeader-0719
+                name: Content-Type
+                expression:
+                  constant:
+                    id: constant-9c47
+                    expression: application/json
+        - setBody:
+            id: setBody-a8d1
+            description: Query data with scroll
+            expression:
+              constant:
+                id: constant-dd7f
+                expression: "{\r\n  \"query\": {\r\n    \"match_all\": {}\r\n  },\r\n  \"scroll\": \"1m\",\r\n  \"size\": 1000\r\n}\r\n"
+        - toD:
+            id: toD-e49c
+            description: Get data
+            uri: http://172.27.16.1:9200/account/_search?scroll=1m
+        - process:
+            id: process-0bd4
+            description: Get scroll id
+            disabled: false
+            ref: Getscroll
+        - process:
+            id: process-294b
+            description: Filter and send to kafka
+            ref: FilterData
+        - to:
+            id: to-392d
+            uri: direct
+            parameters:
+              name: ProcessFilterRoute
+- route:
+    id: route-c180
+    description: process filter continuosly
+    nodePrefixId: route-aa0
+    from:
+      id: from-9b14
+      description: direct
+      uri: direct
+      parameters:
+        name: ProcessFilterRoute
+      steps:
+        - log:
+            id: log-22ea
+            description: Check scroll id available
+            message: "\"scroll : ${exchangeProperty.scroll_id} \""
+        - setHeaders:
+            id: setHeaders-4af2
+            description: Headers for getting data
+            headers:
+              - id: setHeader-4d66
+                name: Authorization
+                expression:
+                  constant:
+                    id: constant-2a81
+                    expression: Basic ZWxhc3RpYzpzZk5Ga0liRHlmTjVRUHNRQVpWUw==
+              - id: setHeader-f58a
+                name: Content-Type
+                expression:
+                  constant:
+                    id: constant-1651
+                    expression: application/json
+        - setBody:
+            id: setBody-fd55
+            description: Query scroll
+            expression:
+              simple:
+                id: simple-f35c
+                expression: |-
+                  {
+                            "scroll": "2m",
+                            "scroll_id": "${exchangeProperty.scroll_id}"
+                          }
+        - toD:
+            id: toD-227d
+            description: HTTP to elasticsearch
+            uri: http://172.27.16.1:9200/_search/scroll
+        - process:
+            id: process-f6cf
+            description: Filter Account
+            ref: FilterData
+        - log:
+            id: log-e17c
+            description: Body log
+            message: ${body}
+        - choice:
+            id: choice-f54c
+            when:
+              - id: when-6b4e
+                description: Still have data
+                expression:
+                  simple:
+                    id: simple-d18b
+                    expression: "\"${exchangeProperty.isEmpty} == false\""
+                steps:
+                  - log:
+                      id: log-5dae
+                      description: Data found log
+                      message: "\"Data found, calling route again.\""
+                  - delay:
+                      id: delay-c427
+                      description: Avoid getting too fast
+                      expression:
+                        simple:
+                          id: simple-ffe0
+                          expression: "2000"
+                  - toD:
+                      id: toD-f897
+                      description: Call this route again
+                      uri: direct:ProcessFilterRoute
+            otherwise:
+              id: otherwise-e3fb
+              description: No data found
+              steps:
+                - log:
+                    id: log-1697
+                    description: No data found log
+                    message: "\"No more data, stopping.\""
+        - log:
+            id: log-9ee5
+            description: success log
+            message: "\"Scroll done.\""
+- routeConfiguration: {}
