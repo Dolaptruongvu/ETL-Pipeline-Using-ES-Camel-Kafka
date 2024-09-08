@@ -19,7 +19,7 @@ public class FilterData implements Processor {
         JsonNode hitsArray = rootNode.path("hits").path("hits");
 
         if (hitsArray.isArray() && hitsArray.size() > 0) {
-            exchange.setProperty("isEmpty", false); // Nếu có dữ liệu, isEmpty = false
+            exchange.setProperty("isEmpty", false); // If there is data, set isEmpty to false
             ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 
             for (JsonNode hit : hitsArray) {
@@ -30,15 +30,15 @@ public class FilterData implements Processor {
                     String accountData = sourceNode.toString();
                     if (balance > 21000) {
                         System.out.println("Sending to high-balance-accounts: " + accountData);
-                        producerTemplate.sendBody("kafka:high-balance-accounts?brokers=172.27.16.1:9092", accountData);
+                        producerTemplate.sendBody("kafka:high-balance-accounts?brokers=localhost:9092", accountData);
                     } else {
                         System.out.println("Sending to low-balance-accounts: " + accountData);
-                        producerTemplate.sendBody("kafka:low-balance-accounts?brokers=172.27.16.1:9092", accountData);
+                        producerTemplate.sendBody("kafka:low-balance-accounts?brokers=localhost:9092", accountData);
                     }
                 }
             }
         } else {
-            exchange.setProperty("isEmpty", true); // Nếu không có dữ liệu, isEmpty = true
+            exchange.setProperty("isEmpty", true); // If no data is found, set isEmpty to true
             System.out.println("No hits found.");
         }
     }
