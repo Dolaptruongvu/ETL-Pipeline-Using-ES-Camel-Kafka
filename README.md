@@ -1,6 +1,6 @@
-# ETL Pipeline Using Elasticsearch, Apache Camel, and Kafka
+# ETL Pipeline Using Elasticsearch, Apache Camel, Mysql and Kafka
 
-This ETL project involves setting up an integration pipeline using Elasticsearch, Apache Camel, and Kafka. Follow the steps below to get the project running:
+This ETL project involves setting up an integration pipeline using Elasticsearch, Apache Camel, Mysql and Kafka. Follow the steps below to get the project running:
 
 ### Prerequisites
 1. **Install Apache Camel Karavan**  
