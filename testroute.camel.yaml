@@ -159,232 +159,134 @@ spec:
                 description: success log
                 message: "\"Scroll done.\""
     - route:
-        id: route-4dac
-        description: get scrollid based on alias
-        nodePrefixId: route-4a1
-        autoStartup: false
+        id: route-c55e
+        description: get scroll id and process data
+        nodePrefixId: route-a25
+        autoStartup: true
         from:
-          id: from-143d
+          id: from-e2ab
           uri: timer
           parameters:
-            timerName: runOnce
             repeatCount: "1"
+            timerName: runOnce
           steps:
-            - setHeaders:
-                id: setHeaders-98a6
-                description: headers for collecting data
-                headers:
-                  - id: setHeader-e5ad
-                    name: Authorization
-                    expression:
-                      constant:
-                        id: constant-2385
-                        expression: Basic ZWxhc3RpYzpzZk5Ga0liRHlmTjVRUHNRQVpWUw==
-                  - id: setHeader-d2b9
-                    name: Content-Type
-                    expression:
-                      simple:
-                        id: simple-2fe3
-                        expression: application/json
-            - setBody:
-                id: setBody-e0a4
-                description: Query condition
-                expression:
-                  constant:
-                    id: constant-964a
-                    expression: |-
-                      {
-                        "query": {
-                          "match_all": {}
-                        },
-                        "size": 10
-                      }
-            - toD:
-                id: toD-15c6
-                description: Get Data
-                uri: http://172.27.16.1:9200/data/_search?scroll=1m
-            - log:
-                id: log-11a8
-                message: ${body}
-            - process:
-                id: process-72ac
-                description: Get ScrollId
-                ref: Getscroll
-            - log:
-                id: log-48f5
-                description: log scroll id
-                message: ${exchangeProperty.scroll_id}
-            - process:
-                id: process-8a10
-                description: Add companyCode and save to DB
-                ref: AddCompanyCode
-            - to:
-                id: to-2ecb
-                uri: direct
-                parameters:
-                  name: GetAndSaveToDB
-    - route:
-        id: route-86d1
-        description: Process and save to Mysql
-        nodePrefixId: route-f47
-        autoStartup: false
-        from:
-          id: from-9271
-          uri: direct
-          parameters:
-            name: GetAndSaveToDB
-          steps:
-            - setHeaders:
-                id: setHeaders-0a41
-                headers:
-                  - id: setHeader-fb8f
-                    name: Authorization
-                    expression:
-                      constant:
-                        id: constant-84f9
-                        expression: Basic ZWxhc3RpYzpzZk5Ga0liRHlmTjVRUHNRQVpWUw==
-                  - id: setHeader-088f
-                    name: Content-Type
-                    expression:
-                      constant:
-                        id: constant-d7d6
-                        expression: application/json
-            - setBody:
-                id: setBody-40ac
-                description: Set query with scrollid
+            - setProperty:
+                id: setProperty-2802
+                description: Set total processed
+                name: total_processed
                 expression:
                   simple:
-                    id: simple-141f
+                    id: simple-1dd4
+                    expression: "0"
+            - setHeaders:
+                id: setHeaders-ea8a
+                description: Headers for getting data
+                headers:
+                  - id: setHeader-1620
+                    name: Authorization
+                    expression:
+                      constant:
+                        id: constant-b2a4
+                        expression: Basic ZWxhc3RpYzpzZk5Ga0liRHlmTjVRUHNRQVpWUw==
+                  - id: setHeader-f40a
+                    name: Content-Type
+                    expression:
+                      constant:
+                        id: constant-d1c1
+                        expression: application/json
+            - setBody:
+                id: setBody-120e
+                description: Query to get data
+                expression:
+                  simple:
+                    id: simple-3581
+                    expression: "{\r\n  \"query\": {\r\n    \"match_all\": {}\r\n  },\r\n  \"scroll\": \"1m\",\r\n  \"size\": 10\r\n}\r\n"
+            - toD:
+                id: toD-7d52
+                uri: http://172.27.16.1:9200/data/_search?scroll=1m
+            - process:
+                id: process-dde8
+                description: Get Scroll Id
+                ref: Getscroll
+            - process:
+                id: process-9f2a
+                description: Process Mysql query and send data to Kafka
+                ref: ProcessQueryAndSendtoKafka
+            - to:
+                id: to-8d15
+                uri: direct
+                parameters:
+                  name: ProcessCompanyContinuously
+    - route:
+        id: route-7245
+        description: Process Company Code And Send to Kafka
+        nodePrefixId: route-af2
+        autoStartup: true
+        from:
+          id: from-17aa
+          uri: direct
+          parameters:
+            name: ProcessCompanyContinuously
+          steps:
+            - setHeaders:
+                id: setHeaders-468e
+                headers:
+                  - id: setHeader-7d41
+                    name: Authorization
+                    expression:
+                      constant:
+                        id: constant-6555
+                        expression: Basic ZWxhc3RpYzpzZk5Ga0liRHlmTjVRUHNRQVpWUw==
+                  - id: setHeader-d5cb
+                    disabled: Content-Type
+                    name: Content-Type
+                    expression:
+                      constant:
+                        id: constant-23f0
+                        expression: application/json
+            - setBody:
+                id: setBody-5da9
+                expression:
+                  simple:
+                    id: simple-f6ca
                     expression: |-
                       {
                                 "scroll": "2m",
                                 "scroll_id": "${exchangeProperty.scroll_id}"
-                        }
+                              }
             - toD:
-                id: toD-3a57
-                description: Get Data
+                id: toD-e261
                 uri: http://172.27.16.1:9200/_search/scroll
             - process:
-                id: process-9395
-                description: Add companyCode and save to DB
-                ref: AddCompanyCode
+                id: process-07d6
+                description: ProcessQueryAndSendtoKafka
+                ref: ProcessQueryAndSendtoKafka
             - log:
-                id: log-c950
-                message: "\"Total processed: ${exchangeProperty.total_processed}\""
+                id: log-a745
+                message: "\"Total processed:  ${exchangeProperty.total_processed}\""
             - choice:
-                id: choice-692e
+                id: choice-4f6c
                 when:
-                  - id: when-0631
-                    description: No Data Found
+                  - id: when-42c6
                     expression:
                       simple:
-                        id: simple-5acd
-                        expression: "\"${exchangeProperty.isEmpty}\""
-                    steps:
-                      - stop:
-                          id: stop-19b0
-                      - log:
-                          id: log-3e16
-                          message: "\"No data found -> Stop process\""
-                otherwise:
-                  id: otherwise-f0eb
-                  description: Data still available
-                  steps:
-                    - delay:
-                        id: delay-3b39
-                        description: Avoid getting data too fast
-                        expression:
-                          simple:
-                            id: simple-ed1c
-                            expression: "500"
-                    - toD:
-                        id: toD-495e
-                        uri: direct:GetAndSaveToDB
-            - log:
-                id: log-7d63
-                message: "\"success"
-    - route:
-        id: route-a57d
-        description: Set Offset
-        nodePrefixId: route-13e
-        autoStartup: true
-        from:
-          id: from-9489
-          uri: timer
-          parameters:
-            timerName: test
-            repeatCount: "1"
-          steps:
-            - setProperty:
-                id: setProperty-fe1d
-                description: set default offset
-                name: offset
-                expression:
-                  simple:
-                    id: simple-6e31
-                    expression: "0"
-            - setProperty:
-                id: setProperty-127e
-                description: set total processed
-                name: total_processed
-                expression:
-                  simple:
-                    id: simple-cdd4
-                    expression: "0"
-            - log:
-                id: log-c79e
-                message: "\"offset:  ${exchangeProperty.offset}\"\r\n\"first total_processed: ${exchangeProperty.total_processed}\""
-            - to:
-                id: to-3c32
-                description: setOffsetDirect
-                uri: direct
-                parameters:
-                  name: ProcessAndSendKafka
-    - route:
-        id: route-c2b6
-        description: Process DB and Kafka
-        nodePrefixId: route-a18
-        autoStartup: true
-        from:
-          id: from-889b
-          uri: direct
-          parameters:
-            name: ProcessAndSendKafka
-          steps:
-            - process:
-                id: process-caec
-                description: Get Data from DB and Send to Kafka
-                ref: MysqltoKafka
-            - log:
-                id: log-987f
-                message: "\"Total Processed :${exchangeProperty.total_processed}\"\r\n\"IsEmpty: ${exchangeProperty.isEmpty}\""
-            - choice:
-                id: choice-c88a
-                when:
-                  - id: when-a781
-                    expression:
-                      simple:
-                        id: simple-aa06
+                        id: simple-8059
                         expression: ${exchangeProperty.isEmpty}
                     steps:
+                      - log:
+                          id: log-506a
+                          message: "\"Data is empty, stop route\""
                       - stop:
-                          id: stop-bca0
+                          id: stop-1862
                 otherwise:
-                  id: otherwise-431a
+                  id: otherwise-8e4c
                   steps:
-                    - delay:
-                        id: delay-3af5
-                        expression:
-                          simple:
-                            id: simple-4ea7
-                            expression: "3000"
+                    - log:
+                        id: log-f262
+                        message: "\"Still have data to process \""
                     - toD:
-                        id: toD-d26d
-                        uri: direct:ProcessAndSendKafka
-            - log:
-                id: log-b785
-                description: Process Data Succesfully
-                message: "\"Process Data Successfully\""
+                        id: toD-f29f
+                        uri: direct:ProcessCompanyContinuously
     - routeConfiguration: {}
     - routeConfiguration: {}
   dependencies:
